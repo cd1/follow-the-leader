@@ -2,7 +2,11 @@
 #include <avr/io.h>
 #include "timer0.h"
 
-void buzzer_setup() { DDRB |= (1 << DDB0); }
+void buzzer_setup() {
+    DDRB |= (1 << DDB0);
+    // Setup timer 0
+    timer0_setup();
+}
 
 void buzzer_tone(unsigned int frequency, unsigned long duration) {
     unsigned long delay_ms = 1000 / frequency;
