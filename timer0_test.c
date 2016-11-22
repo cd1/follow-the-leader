@@ -1,7 +1,6 @@
 #include "timer0.h"
 #include <stdio.h>
 #include "uart.h"
-#include <avr/interrupt.h>
 
 int main() {
     uart_setup();
