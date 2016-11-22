@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 
 int main() {
+	uart_setup();
     timer0_setup();
 
     sei();  // Enable Global Interrupt
