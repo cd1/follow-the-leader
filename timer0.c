@@ -12,7 +12,7 @@ void timer0_setup() {
     // set initial value
     TCNT0 = 0;
     // set interval count
-    OCR0A = 250;
+    OCR0A = 249;
     // set prescaler to /64
     TCCR0B |= (1 << CS01) | (1 << CS00);
     // Enable Global Interrupt
