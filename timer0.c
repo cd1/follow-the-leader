@@ -15,6 +15,8 @@ void timer0_setup() {
     OCR0A = 250;
     // set prescaler to /64
     TCCR0B |= (1 << CS01) | (1 << CS00);
+    // Enable Global Interrupt
+    sei();
 
     millis = 0;
 }
