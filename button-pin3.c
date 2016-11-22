@@ -32,6 +32,7 @@ void button_pin3_setup() {
 
     button_pin3_press = 0;
     hard_button_pin3_press = 0;
+    timer0_setup();
     sei();
 }
 

@@ -1,12 +1,10 @@
 #include <stdio.h>
 
 #include "button-pin3.h"
-#include "timer0.h"
 #include "uart.h"
 
 int main() {
     uart_setup();
-    timer0_setup();
     button_pin3_setup();
 
     unsigned long last_press = 0;
