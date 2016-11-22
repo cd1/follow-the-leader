@@ -1,5 +1,7 @@
-#include "uart.h"
 #include <avr/io.h>
+#include <stdlib.h>
+
+#include "uart.h"
 
 /**
  * The system CPU frequency, in Hertz.
@@ -29,6 +31,10 @@ unsigned int compute_baud_prescale() {
  * @return Always 0 to indicate success.
  */
 int uart_putc(char c, FILE *stream) {
+    if (c == '\n') {
+        uart_putc('\r', NULL);
+    }
+
     while ((UCSR0A & (1 << UDRE0)) == 0)
         ;
     UDR0 = c;
