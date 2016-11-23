@@ -24,7 +24,7 @@ void button_pin2_setup() {
     DDRD &= ~(1 << DDD2);
 
     // allow interrupts
-    EIMSK = (1 << INT0);
+    EIMSK |= (1 << INT0);
 
     // request falling edge changes
     EICRA &= ~(1 << ISC00);
