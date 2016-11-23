@@ -9,7 +9,7 @@
  * considered distinct. If two button presses happen in an interval less than
  * this value, the first one is ignored.
  */
-const unsigned long BOUNCE_THRESHOLD_PIN2 = 150;  // ms
+const unsigned long BOUNCE_THRESHOLD_PIN2 = 200;  // ms
 
 /**
  * The moment (as of "timer0_millis()") that the button on PIN 2 was pressed for
