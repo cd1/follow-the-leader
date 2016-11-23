@@ -3,7 +3,7 @@ ARDUINO_ROOT=/Applications/Arduino.app/Contents/Java/hardware/tools/avr
 DEVICE_PATH=/dev/cu.usbmodem1421
 
 SKETCH=main
-OBJ_DEPS=button-pin2.o button-pin3.o buzzer.o timer0.o uart.o
+OBJ_DEPS=button-pin2.o button-pin3.o buzzer.o notes.o players.o timer0.o uart.o
 CFLAGS=-Wall -Os -mmcu=atmega328
 
 # you probably shouldn't change these variables

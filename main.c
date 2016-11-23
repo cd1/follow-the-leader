@@ -1,91 +1,117 @@
-#include <stdbool.h>
+#include <math.h>
 #include <stdio.h>
 
-const int BOUNCE_THRESHOLD = 200;  // ms
+#include "button-pin2.h"
+#include "button-pin3.h"
+#include "buzzer.h"
+#include "notes.h"
+#include "players.h"
+#include "uart.h"
 
-const int TONE_ERROR = 100;
-const int TONE_C = 16;
-const int TONE_F = 21;
-const int BUZZ_DURATION = 1000;  // ms
+const unsigned int BUZZ_ERROR_FREQ = 10;       // Hz
+const unsigned int BUZZ_C_FREQ = 100;          // Hz
+const unsigned int BUZZ_F_FREQ = 500;          // Hz
+const unsigned long BUZZ_DURATION = 500;       // ms
+const unsigned long BUZZ_DURATION_ERROR = 50;  // ms
 
-const int NO_NOTE = 0;
-const int NOTE_C = 1;
-const int NOTE_F = 2;
-
-const int NO_PLAYER = -1;
-const uint64_t PLAYER_TIMEOUT = 5000;  // ms
-
-const int MAX_NOTES_COUNT = 64;
+const unsigned long PLAYER_TIMEOUT = 5000;  // ms
 
 int main() {
-    uart_setup();
-    timer0_setup();
     button_pin2_setup();
     button_pin3_setup();
     buzzer_setup();
-    sei();
+    uart_setup();
 
-reset:
-    int *notes = malloc(MAX_NOTES_COUNT * sizeof(int));
-    fprintf(&uart,
-            "Welcome to the follow the leader game! Please enter the number of "
-            "players: [2-9]\n");
-
-number_of_players:
-    uint8_t n_players;
-    fscanf(&uart, "%d", &n_players);
-
-    bool *players = malloc(n_players * sizeof(bool));
-
-round_reset:
-    uint16_t round = 1;
-    int current_player = NO_PLAYER;
-    int i;
-
-    for (i = 0; i < MAX_NOTES_COUNT; i++) {
-        notes[i] = NO_NOTE;
-    }
-
-    for (i = 0; i < n_players; i++) {
-        players[i] = true;
-    }
-
-round_start:
     while (1) {
-        fprintf(&uart, "Round %u\n", round);
-        while (1) {
-            current_player = find_next_player(players, current_player);
-            if (current_player == NO_PLAYER) {
-                round++;
-                break;
-            }
+        unsigned int n_players;
 
-        round_turn:
-            fprintf(&uart, "Player %d\n", current_player + 1);
-            // wait for the player to input the notes; use a watchdog to abort
-            // the player's turn
+        do {
+            fprintf(&uart,
+                    "Welcome to the follow the leader game! Please enter the "
+                    "number of "
+                    "players: [2-9]\n");
+            fscanf(&uart, "%u", &n_players);
+        } while (n_players < 2 || n_players > 9);
 
-            while (input_notes_count < round && !note_mismatch &&
-                   !player_timeout)
-                ;
+        player_list *players = players_new(n_players);
+        notes_list *notes = notes_new();
 
-            if (note_mismatch) {
-                buzzer_tone(TONE_ERROR);
-                fprintf(&uart,
-                        "Incorrect sequence! You have been eliminated!\n");
-            } else if (player_timeout) {
-                fprintf(&uart, "Time expired. You have been eliminated!\n");
-            } else {
-                notes[notes_size] = last_note;
-                notes_size++;
+        unsigned long last_button_pin2_press = 0;
+        unsigned long last_button_pin3_press = 0;
+
+        unsigned int round;
+        for (round = 1; players_active_count(players) >= 2; round++) {
+            fprintf(&uart, "Round %u\n", round);
+
+            int current_player = PLAYER_NONE;
+            while (players_active_count(players) >= 2 &&
+                   ((current_player = players_next_active(
+                         players, current_player)) != PLAYER_NONE)) {
+                bool note_mismatch = false;
+                unsigned int input_notes_count = 0;
+                int last_note = NOTE_NONE;
+                bool player_timeout = false;  // TODO
+                unsigned int notes_to_press = notes_size(notes) + 1;
+
+                fprintf(&uart, "Player %d\n", current_player + 1);
+
+                while (input_notes_count < notes_to_press && !note_mismatch &&
+                       !player_timeout) {
+                    if (button_pin2_press > last_button_pin2_press) {
+                        last_button_pin2_press = button_pin2_press;
+                        fprintf(&uart, "C");  // TODO: remove debugging call
+
+                        input_notes_count++;
+
+                        if ((input_notes_count < notes_to_press) &&
+                            (notes_get(notes, input_notes_count - 1) !=
+                             NOTE_C)) {
+                            note_mismatch = true;
+                            buzzer_tone(BUZZ_ERROR_FREQ, BUZZ_DURATION_ERROR);
+                        } else {
+                            buzzer_tone(BUZZ_C_FREQ, BUZZ_DURATION);
+                        }
+
+                        last_note = NOTE_C;
+                    } else if (button_pin3_press > last_button_pin3_press) {
+                        last_button_pin3_press = button_pin3_press;
+                        fprintf(&uart, "F");  // TODO: remove debugging call
+
+                        input_notes_count++;
+
+                        if ((input_notes_count < notes_to_press) &&
+                            (notes_get(notes, input_notes_count - 1) !=
+                             NOTE_F)) {
+                            note_mismatch = true;
+                            buzzer_tone(BUZZ_ERROR_FREQ, BUZZ_DURATION_ERROR);
+                        } else {
+                            buzzer_tone(BUZZ_C_FREQ, BUZZ_DURATION);
+                        }
+
+                        last_note = NOTE_F;
+                    }
+                }
+                fprintf(&uart, "\n");  // TODO: remove debugging call
+
+                if (note_mismatch) {
+                    fprintf(&uart,
+                            "Incorrect sequence! You have been eliminated!\n");
+                    players_set_inactive(players, current_player);
+                } else if (player_timeout) {
+                    fprintf(&uart, "Time expired. You have been eliminated!\n");
+                    players_set_inactive(players, current_player);
+                } else {
+                    notes_append(notes, last_note);
+                }
             }
         }
+
+        int winner = players_next_active(players, PLAYER_NONE);
+        fprintf(&uart, "Player %d won!\n", winner + 1);
+
+        notes_free(notes);
+        players_free(players);
     }
 
-    free(notes);
-    free(players);
-
-    // game over
-    while (1)
-        ;
+    return 0;
 }
