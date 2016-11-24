@@ -36,8 +36,8 @@ int main() {
         player_list *players = players_new(n_players);
         notes_list *notes = notes_new();
 
-        unsigned long last_button_pin2_press = 0;
-        unsigned long last_button_pin3_press = 0;
+        unsigned long last_button_pin2_press = button_pin2_press;
+        unsigned long last_button_pin3_press = button_pin3_press;
 
         unsigned int round;
         for (round = 1; players_active_count(players) >= 2; round++) {
