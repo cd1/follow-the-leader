@@ -1,4 +1,3 @@
-#include <math.h>
 #include <stdio.h>
 
 #include "button-pin2.h"
@@ -6,6 +5,7 @@
 #include "buzzer.h"
 #include "notes.h"
 #include "players.h"
+#include "timer0.h"
 #include "uart.h"
 
 const unsigned int BUZZ_ERROR_FREQ = 10;       // Hz
@@ -20,6 +20,7 @@ int main() {
     button_pin2_setup();
     button_pin3_setup();
     buzzer_setup();
+    timer0_setup();
     uart_setup();
 
     while (1) {
@@ -50,8 +51,9 @@ int main() {
                 bool note_mismatch = false;
                 unsigned int input_notes_count = 0;
                 int last_note = NOTE_NONE;
-                bool player_timeout = false;  // TODO
+                bool player_timeout = false;
                 unsigned int notes_to_press = notes_size(notes) + 1;
+                unsigned long last_timeout_checkpoint = timer0_millis();
 
                 fprintf(&uart, "Player %d\n", current_player + 1);
 
@@ -59,6 +61,7 @@ int main() {
                        !player_timeout) {
                     if (button_pin2_press > last_button_pin2_press) {
                         last_button_pin2_press = button_pin2_press;
+                        last_timeout_checkpoint = button_pin2_press;
                         fprintf(&uart, "C");  // TODO: remove debugging call
 
                         input_notes_count++;
@@ -75,6 +78,7 @@ int main() {
                         last_note = NOTE_C;
                     } else if (button_pin3_press > last_button_pin3_press) {
                         last_button_pin3_press = button_pin3_press;
+                        last_timeout_checkpoint = button_pin3_press;
                         fprintf(&uart, "F");  // TODO: remove debugging call
 
                         input_notes_count++;
@@ -89,6 +93,11 @@ int main() {
                         }
 
                         last_note = NOTE_F;
+                    }
+
+                    if ((timer0_millis() - last_timeout_checkpoint) >=
+                        PLAYER_TIMEOUT) {
+                        player_timeout = true;
                     }
                 }
                 fprintf(&uart, "\n");  // TODO: remove debugging call
