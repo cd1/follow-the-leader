@@ -9,8 +9,8 @@
 #include "uart.h"
 
 const unsigned int BUZZ_ERROR_FREQ = 10;       // Hz
-const unsigned int BUZZ_C_FREQ = 100;          // Hz
-const unsigned int BUZZ_F_FREQ = 500;          // Hz
+const unsigned int BUZZ_C_FREQ = 396;          // Hz
+const unsigned int BUZZ_F_FREQ = 639;          // Hz
 const unsigned long BUZZ_DURATION = 500;       // ms
 const unsigned long BUZZ_DURATION_ERROR = 50;  // ms
 
