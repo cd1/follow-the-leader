@@ -89,7 +89,7 @@ int main() {
                             note_mismatch = true;
                             buzzer_tone(BUZZ_ERROR_FREQ, BUZZ_DURATION_ERROR);
                         } else {
-                            buzzer_tone(BUZZ_C_FREQ, BUZZ_DURATION);
+                            buzzer_tone(BUZZ_F_FREQ, BUZZ_DURATION);
                         }
 
                         last_note = NOTE_F;
