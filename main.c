@@ -62,7 +62,6 @@ int main() {
                     if (button_pin2_press > last_button_pin2_press) {
                         last_button_pin2_press = button_pin2_press;
                         last_timeout_checkpoint = button_pin2_press;
-                        fprintf(&uart, "C");  // TODO: remove debugging call
 
                         input_notes_count++;
 
@@ -79,7 +78,6 @@ int main() {
                     } else if (button_pin3_press > last_button_pin3_press) {
                         last_button_pin3_press = button_pin3_press;
                         last_timeout_checkpoint = button_pin3_press;
-                        fprintf(&uart, "F");  // TODO: remove debugging call
 
                         input_notes_count++;
 
@@ -100,7 +98,6 @@ int main() {
                         player_timeout = true;
                     }
                 }
-                fprintf(&uart, "\n");  // TODO: remove debugging call
 
                 if (note_mismatch) {
                     fprintf(&uart,
